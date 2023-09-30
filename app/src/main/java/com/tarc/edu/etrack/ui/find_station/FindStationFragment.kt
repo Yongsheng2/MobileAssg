@@ -1,6 +1,8 @@
 package com.tarc.edu.etrack.ui.find_station
 
 import android.os.Bundle
+import android.service.autofill.UserData
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,16 +11,14 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import com.tarc.edu.etrack.R
 import com.tarc.edu.etrack.RecyclerView.MyAdapter
 import com.tarc.edu.etrack.RecyclerView.StationNavigator
 import com.tarc.edu.etrack.databinding.FragmentFindStationBinding
 import com.tarc.edu.etrack.ui.station_details.StationData
+import com.tarc.edu.etrack.ui.station_details.StationDetailFragment
+import java.util.ArrayList
 
 class FindStationFragment : Fragment(), StationNavigator {
 
@@ -28,13 +28,35 @@ class FindStationFragment : Fragment(), StationNavigator {
     private lateinit var adapter: MyAdapter
     private var currentFilterType: FilterType = FilterType.ALL
 
+    enum class FilterType {
+        ALL, BY_NAME, BY_CAR
+    }
+
+    override fun navigateToStationDetail(stationName: String) {
+        navigateToAnotherFragment(stationName)
+    }
+    fun navigateToAnotherFragment(selectedStationName: String) {
+        val fragment = StationDetailFragment() // Replace with the actual name of the fragment you want to navigate to.
+
+        // Pass the selectedStationName to the new fragment
+        val bundle = Bundle()
+        bundle.putString("stationName", selectedStationName)
+        fragment.arguments = bundle
+
+        // Use FragmentTransaction to navigate to the new fragment
+        val transaction = requireActivity().supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.fragment_container, fragment) // Replace 'fragmentContainer' with your actual container ID
+        transaction.addToBackStack(null) // Add to back stack if needed
+        transaction.commit()
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentFindStationBinding.inflate(inflater, container, false)
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance().reference
 
         adapter = MyAdapter({ selectedStationName ->
-            // Handle item click
+            navigateToAnotherFragment(selectedStationName)
         }, this)
 
         binding.recyclerViewStation.adapter = adapter
@@ -69,18 +91,23 @@ class FindStationFragment : Fragment(), StationNavigator {
         val stationRef = database.child("Station")
         stationRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val stations = mutableListOf<StationData>()
-                for (snapshot in dataSnapshot.children) {
-                    val station = snapshot.getValue(StationData::class.java)
-                    if (station != null) {
-                        stations.add(station)
-                    }
+                val stationList = ArrayList<StationData>()
+                for (stationSnapshot in dataSnapshot.children) {
+                    val stationName = stationSnapshot.child("Name").getValue(String::class.java) ?: ""
+                    val name = stationSnapshot.key ?: ""
+                    val openTime = stationSnapshot.child("OpenTime").getValue(String::class.java) ?: ""
+                    val closeTime = stationSnapshot.child("CloseTime").getValue(String::class.java) ?: ""
+                    val stationData = StationData(stationName, name, openTime, closeTime)
+                    stationList.add(stationData)
                 }
-                adapter.setData(stations)
+
+                adapter.setData(stationList)
+                binding.recyclerViewStation.adapter = adapter
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                Toast.makeText(requireContext(), "Error fetching data", Toast.LENGTH_SHORT).show()
+                // Handle errors
+                Log.e("HomeFragment", "Database Error: ${databaseError.message}")
             }
         })
     }
@@ -94,72 +121,24 @@ class FindStationFragment : Fragment(), StationNavigator {
         }
 
         val stationRef = database.child("Station")
-        stationRef.orderByChild("Name").startAt(stationNameQuery).endAt(stationNameQuery + "\uf8ff")
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    val stations = mutableListOf<StationData>()
-                    for (snapshot in dataSnapshot.children) {
-                        val stationName = snapshot.child("Name").getValue(String::class.java) ?: ""
-                        val name = snapshot.key ?: ""
-                        val openTime = snapshot.child("OpenTime").getValue(String::class.java) ?: ""
-                        val closeTime = snapshot.child("CloseTime").getValue(String::class.java) ?: ""
-                        val stationData = StationData(stationName, name, openTime, closeTime)
-                        stations.add(stationData)
-                    }
-                    adapter.setData(stations)
-                }
-
-                override fun onCancelled(databaseError: DatabaseError) {
-                    Toast.makeText(requireContext(), "Error fetching data", Toast.LENGTH_SHORT).show()
-                }
-            })
-    }
-    enum class FilterType {
-        ALL, BY_NAME, BY_CAR
-    }
-
-    private fun filterStationsByCarChargerType() {
-        val userId = auth.currentUser?.uid
-
-        if (userId == null) {
-            Toast.makeText(requireContext(), "User not authenticated", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        // Retrieve the list of user's car names
-        database.child("users").child(userId).child("usercar").addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val userCars = dataSnapshot.children.mapNotNull { it.key } // Filter out null values
-                val textViewUserCar = view?.findViewById<TextView>(R.id.textViewUserCar)
-                textViewUserCar?.text = "Your Text Here"
-            }
-
-            override fun onCancelled(databaseError: DatabaseError) {
-                // Handle errors
-            }
-        })
-
-    }
-
-    private fun filterAndSetStationsByCarNames(carNames: List<String>) {
-        val stationRef = database.child("Station")
-        val stations = mutableListOf<StationData>()
 
         stationRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val stations = mutableListOf<StationData>()
+
                 for (snapshot in dataSnapshot.children) {
                     val stationName = snapshot.child("Name").getValue(String::class.java) ?: ""
                     val name = snapshot.key ?: ""
                     val openTime = snapshot.child("OpenTime").getValue(String::class.java) ?: ""
                     val closeTime = snapshot.child("CloseTime").getValue(String::class.java) ?: ""
-                    val chargerType = snapshot.child("Chargertype").getValue(String::class.java) ?: ""
 
-                    // Check if the station's charger type is in the user's car charger types
-                    if (chargerType in carNames) {
+                    // Check if the stationName contains the search query (case-insensitive)
+                    if (stationName.contains(stationNameQuery, ignoreCase = true)) {
                         val stationData = StationData(stationName, name, openTime, closeTime)
                         stations.add(stationData)
                     }
                 }
+
                 adapter.setData(stations)
             }
 
@@ -169,7 +148,12 @@ class FindStationFragment : Fragment(), StationNavigator {
         })
     }
 
-    override fun navigateToStationDetail(stationName: String) {
-        // Handle the navigation
+
+
+    private fun filterStationsByCarChargerType() {
+
     }
+
+
 }
+
