@@ -8,9 +8,11 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
@@ -202,6 +204,35 @@ class StationDetailFragment : Fragment() {
                 .into(imageViewDetail3)
         }
 
+        // ... Existing code ...
+
+        val spinnerPendingStation = rootView.findViewById<Spinner>(R.id.spinnerPendingStation)
+        val places = arrayOf("Place1", "Place2", "Place3", "Place4")
+
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, places)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerPendingStation.adapter = adapter
+
+        val buttonPending = rootView.findViewById<Button>(R.id.buttonPending)
+        buttonPending.setOnClickListener {
+            val selectedPlace = spinnerPendingStation.selectedItem as String
+
+            // Update the place status in Firebase
+            val user = FirebaseAuth.getInstance().currentUser
+            if (user != null) {
+                val userId = user.uid
+                val stationRef = database.getReference("Station/$name/PendingPlace/$selectedPlace")
+                stationRef.setValue(false).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        // Place marked as pending successfully
+                        Toast.makeText(requireContext(), "Place $selectedPlace marked as pending.", Toast.LENGTH_SHORT).show()
+                    } else {
+                        // Handle error
+                        Toast.makeText(requireContext(), "Failed to mark place as pending.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
 
         return rootView
     }
@@ -237,4 +268,5 @@ class StationDetailFragment : Fragment() {
         val currentTimeDate = Date(currentTimeMillis)
         return sdf.format(currentTimeDate)
     }
+
 }
