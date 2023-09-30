@@ -9,7 +9,11 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.*
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.tarc.edu.etrack.R
 import com.tarc.edu.etrack.RecyclerView.MyAdapter
 import com.tarc.edu.etrack.RecyclerView.StationNavigator
@@ -126,8 +130,8 @@ class FindStationFragment : Fragment(), StationNavigator {
         database.child("users").child(userId).child("usercar").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val userCars = dataSnapshot.children.mapNotNull { it.key } // Filter out null values
-                val textViewUserCar = binding.findViewById<TextView>(R.id.textViewUserCar)
-                textViewUserCar.text = "Your Text Here"
+                val textViewUserCar = view?.findViewById<TextView>(R.id.textViewUserCar)
+                textViewUserCar?.text = "Your Text Here"
             }
 
             override fun onCancelled(databaseError: DatabaseError) {

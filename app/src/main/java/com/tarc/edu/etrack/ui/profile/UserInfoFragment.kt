@@ -1,13 +1,14 @@
 package com.tarc.edu.etrack.ui.profile
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
@@ -15,7 +16,6 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
 import com.tarc.edu.etrack.R
 
@@ -36,7 +36,6 @@ class UserInfoFragment : Fragment() {
 
         val editTextUsername = view.findViewById<EditText>(R.id.editTextUserInfoUsername)
         val textViewEmail = view.findViewById<TextView>(R.id.textViewInfoEmail)
-        val textViewCarType = view.findViewById<TextView>(R.id.textViewCarType)
         val buttonSave = view.findViewById<Button>(R.id.buttonUserInfoSave)
 
         val userId = auth.currentUser?.uid ?: ""
@@ -75,23 +74,17 @@ class UserInfoFragment : Fragment() {
             }
         })
 
-        database.child(userId).child("usercar").child("0").addListenerForSingleValueEvent(object :
-            ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    if (dataSnapshot.exists()) {
-                        val usercar = dataSnapshot.getValue(String::class.java) ?: ""
+        val buttonreset = view.findViewById<Button>(R.id.buttonRpw)
 
-                        textViewCarType.text = "$usercar"
-                    }
-                }
-            }
+        buttonreset.setOnClickListener{
+            val resetFragment = ResetPasswordFragment()
 
-            override fun onCancelled(databaseError: DatabaseError) {
-                // Handle errors here
-            }
-        })
-
+            val transaction: FragmentTransaction = requireFragmentManager().beginTransaction()
+            transaction.replace(R.id.fragment_container, resetFragment)
+            transaction.addToBackStack(null) // Optional, adds the transaction to the back stack
+            transaction.commit()
+        }
+        
         buttonSave.setOnClickListener {
             val newUsername = editTextUsername.text.toString()
             // Update the username in the database

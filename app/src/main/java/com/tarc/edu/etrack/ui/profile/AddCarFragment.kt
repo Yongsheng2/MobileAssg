@@ -1,7 +1,6 @@
 package com.tarc.edu.etrack.ui.profile
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,14 +9,13 @@ import android.widget.Button
 import android.widget.ListView
 import android.widget.Spinner
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.ktx.Firebase
 import com.tarc.edu.etrack.R
 
 class AddCarFragment : Fragment() {
@@ -26,6 +24,7 @@ class AddCarFragment : Fragment() {
     private lateinit var database: DatabaseReference
     private val CarOptions = mutableListOf<String>()
     private val selectedCars = mutableListOf<String>()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -44,7 +43,30 @@ class AddCarFragment : Fragment() {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = adapter
 
-        CarOptionRef.addValueEventListener(object : ValueEventListener{
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+        // Load saved car data from Firebase when the fragment is created
+        val userCarsRef = database.getReference("users").child(userId).child("usercar")
+        userCarsRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    selectedCars.clear()
+                    for (carSnapshot in dataSnapshot.children) {
+                        val car = carSnapshot.getValue(String::class.java)
+                        car?.let {
+                            selectedCars.add(car)
+                        }
+                    }
+                    updateListView()
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle errors
+            }
+        })
+
+        CarOptionRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()) {
                     CarOptions.clear()
@@ -57,6 +79,7 @@ class AddCarFragment : Fragment() {
                     adapter.notifyDataSetChanged()
                 }
             }
+
             override fun onCancelled(databaseError: DatabaseError) {
                 // Handle errors
             }
@@ -67,32 +90,43 @@ class AddCarFragment : Fragment() {
             if (!selectedCars.contains(selectedEV)) {
                 selectedCars.add(selectedEV)
                 updateListView()
-            }
-        }
 
-        auth = FirebaseAuth.getInstance()
-
-        saveButton.setOnClickListener {
-                val userId = auth.currentUser?.uid ?: ""
-                if (userId != null) {
-                    val userCarsRef = database.getReference("users").child(userId).child("usercar")
+                // Update Firebase with the new data
+                if (userId.isNotBlank()) {
                     userCarsRef.setValue(selectedCars)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
-                                Toast.makeText(requireContext(), "Cars saved successfully", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(requireContext(), "Car added successfully", Toast.LENGTH_SHORT).show()
                             } else {
-                                Toast.makeText(requireContext(), "Failed to save Car", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(requireContext(), "Failed to add Car", Toast.LENGTH_SHORT).show()
                             }
                         }
                 }
+            }
         }
+
+        saveButton.setOnClickListener {
+            // Save the current selected cars to Firebase
+            if (userId.isNotBlank()) {
+                userCarsRef.setValue(selectedCars)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Toast.makeText(requireContext(), "Cars saved successfully", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(requireContext(), "Failed to save Cars", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+            }
+        }
+
         return view
     }
+
     private fun updateListView() {
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, selectedCars)
         val listView = view?.findViewById<ListView>(R.id.listViewCars)
         listView?.adapter = adapter
-        }
+    }
 }
 
 
