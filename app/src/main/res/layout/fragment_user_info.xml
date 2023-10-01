@@ -55,7 +55,8 @@
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="@+id/textView5"
         app:layout_constraintStart_toEndOf="@+id/textView5"
-        app:layout_constraintTop_toTopOf="@+id/textView5" />
+        app:layout_constraintTop_toTopOf="@+id/textView5"
+        app:layout_constraintVertical_bias="0.0" />
 
     <EditText
         android:id="@+id/editTextUserInfoUsername"
@@ -69,7 +70,8 @@
         android:singleLine="false"
         app:layout_constraintBottom_toBottomOf="@+id/textViewNm"
         app:layout_constraintStart_toEndOf="@+id/textViewNm"
-        app:layout_constraintTop_toTopOf="@+id/textViewNm" />
+        app:layout_constraintTop_toTopOf="@+id/textViewNm"
+        app:layout_constraintVertical_bias="0.37" />
 
     <Button
         android:id="@+id/buttonUserInfoSave"

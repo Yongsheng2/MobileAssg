@@ -24,7 +24,6 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import com.tarc.edu.etrack.R
-import com.tarc.edu.etrack.ui.notifications.NotificationData
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -33,12 +32,6 @@ class StationDetailFragment : Fragment() {
 
     private var isFavorite = false
 
-    //test
-    private lateinit var database: FirebaseDatabase
-    private lateinit var openTime: String
-    private lateinit var closeTime: String
-    private lateinit var notificationsRef: DatabaseReference
-    //
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -171,10 +164,6 @@ class StationDetailFragment : Fragment() {
 
                 glide.load(imageRef)
                     .into(imageViewDetail1)
-
-                //test
-                sendNotificationIfStationIsOpen()
-                //
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -251,30 +240,5 @@ class StationDetailFragment : Fragment() {
         val currentTimeDate = Date(currentTimeMillis)
         return sdf.format(currentTimeDate)
     }
-
-    //test
-    private fun sendNotificationIfStationIsOpen() {
-        val currentTime = getCurrentDeviceTime()
-        val stationOpen = isStationOpen(currentTime, openTime, closeTime)
-
-        if (stationOpen) {
-            // Station is open, send a notification
-            val notificationData = NotificationData("Station Open", "The station is now open.")
-            val newNotificationRef = notificationsRef.push()
-            newNotificationRef.setValue(notificationData)
-
-            // Send FCM notification (you need to implement this part)
-            sendFCMNotification("Station Open", "The station is now open")
-        }
-    }
-
-    // Rest of your code...
-
-    private fun sendFCMNotification(title: String, message: String) {
-        // Implement the code to send an FCM notification here
-        // You'll need to use Firebase Cloud Messaging to send notifications.
-        // Refer to the Firebase documentation for details on how to send FCM notifications.
-    }
-    //test
 }
 

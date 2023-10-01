@@ -1,20 +1,11 @@
 package com.tarc.edu.etrack
 
-import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
-import com.google.firebase.auth.FirebaseAuth
-import com.tarc.edu.etrack.databinding.ActivityMainBinding
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.tarc.edu.etrack.ui.favorite.FavoriteFragment
 import com.tarc.edu.etrack.ui.find_station.FindStationFragment
 import com.tarc.edu.etrack.ui.home.HomeFragment
-import com.tarc.edu.etrack.ui.notifications.NotificationsFragment
 import com.tarc.edu.etrack.ui.profile.ProfileFragment
 
 class MainActivity : AppCompatActivity() {
@@ -49,12 +40,6 @@ class MainActivity : AppCompatActivity() {
                 R.id.menu_favorite -> {
                     supportFragmentManager.beginTransaction()
                         .replace(R.id.fragment_container, FavoriteFragment())
-                        .commit()
-                    true
-                }
-                R.id.menu_notifications -> {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, NotificationsFragment())
                         .commit()
                     true
                 }
