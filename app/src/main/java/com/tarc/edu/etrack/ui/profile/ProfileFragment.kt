@@ -9,9 +9,10 @@ import android.widget.Button
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import com.google.firebase.auth.FirebaseAuth
-import com.tarc.edu.etrack.ui.login.LoginActivity
 import com.tarc.edu.etrack.R
 import com.tarc.edu.etrack.databinding.FragmentProfileBinding
+import com.tarc.edu.etrack.pending_station
+import com.tarc.edu.etrack.ui.login.LoginActivity
 
 class ProfileFragment : Fragment() {
     private lateinit var binding: FragmentProfileBinding
@@ -52,6 +53,17 @@ class ProfileFragment : Fragment() {
 
             val transaction: FragmentTransaction = requireFragmentManager().beginTransaction()
             transaction.replace(R.id.fragment_container, addcarfragment)
+            transaction.addToBackStack(null) // Optional, adds the transaction to the back stack
+            transaction.commit()
+        }
+
+        val pendingButton = view.findViewById<Button>(R.id.buttontpdpg)
+
+        pendingButton.setOnClickListener{
+            val pendingfragment = pending_station()
+
+            val transaction: FragmentTransaction = requireFragmentManager().beginTransaction()
+            transaction.replace(R.id.fragment_container, pendingfragment)
             transaction.addToBackStack(null) // Optional, adds the transaction to the back stack
             transaction.commit()
         }
