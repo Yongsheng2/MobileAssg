@@ -45,14 +45,11 @@ class UserInfoFragment : Fragment() {
                 if (dataSnapshot.exists()) {
                     val username = dataSnapshot.getValue(String::class.java)
                     if (username != null) {
-                        // Set the username directly in the EditText
                         editTextUsername.setText(username)
                     }
                 }
             }
-
             override fun onCancelled(databaseError: DatabaseError) {
-                // Handle errors here
             }
         })
 
@@ -62,35 +59,29 @@ class UserInfoFragment : Fragment() {
                 if (dataSnapshot.exists()) {
                     if (dataSnapshot.exists()) {
                         val email = dataSnapshot.getValue(String::class.java) ?: ""
-
-                        // Display email in TextView
                         textViewEmail.text = "$email"
                     }
                 }
             }
-
             override fun onCancelled(databaseError: DatabaseError) {
-                // Handle errors here
             }
         })
 
-        val buttonreset = view.findViewById<Button>(R.id.buttonRpw)
+        val buttonreset = view.findViewById<Button>(R.id.buttonCpw)
 
         buttonreset.setOnClickListener{
             val resetFragment = ResetPasswordFragment()
 
             val transaction: FragmentTransaction = requireFragmentManager().beginTransaction()
             transaction.replace(R.id.fragment_container, resetFragment)
-            transaction.addToBackStack(null) // Optional, adds the transaction to the back stack
+            transaction.addToBackStack(null)
             transaction.commit()
         }
         
         buttonSave.setOnClickListener {
             val newUsername = editTextUsername.text.toString()
-            // Update the username in the database
             database.child(userId).child("username").setValue(newUsername)
         }
-
         return view
     }
 }

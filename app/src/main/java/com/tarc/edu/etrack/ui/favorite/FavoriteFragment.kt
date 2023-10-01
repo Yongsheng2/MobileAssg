@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
@@ -20,10 +19,8 @@ import com.tarc.edu.etrack.R
 import com.tarc.edu.etrack.RecyclerView.MyAdapter
 import com.tarc.edu.etrack.RecyclerView.StationNavigator
 import com.tarc.edu.etrack.databinding.FragmentFavoriteBinding
-import com.tarc.edu.etrack.databinding.FragmentHomeBinding
 import com.tarc.edu.etrack.ui.station_details.StationData
 import com.tarc.edu.etrack.ui.station_details.StationDetailFragment
-import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 
@@ -36,7 +33,6 @@ class FavoriteFragment : Fragment(), StationNavigator {
     override fun navigateToStationDetail(stationName: String) {
         navigateToAnotherFragment(stationName)
     }
-
 
     fun navigateToAnotherFragment(selectedStationName: String) {
         val fragment = StationDetailFragment()
@@ -53,13 +49,12 @@ class FavoriteFragment : Fragment(), StationNavigator {
         val binding = FragmentFavoriteBinding.inflate(inflater, container, false)
 
         auth = Firebase.auth
-        database = FirebaseDatabase.getInstance().reference  // Change here
+        database = FirebaseDatabase.getInstance().reference
 
         adapter = MyAdapter({ selectedStationName ->
             navigateToAnotherFragment(selectedStationName)
         }, this)
 
-        // Set up the RecyclerView
         binding.RecyclerFavouriteView.adapter = adapter
         binding.RecyclerFavouriteView.layoutManager = LinearLayoutManager(requireContext())
 
@@ -76,7 +71,6 @@ class FavoriteFragment : Fragment(), StationNavigator {
                         val stationName = favoriteSnapshot.key ?: ""
 
                         if (isFavorite) {
-                            // Fetch details for each favorite station
                             database.child("Station").child(stationName)
                                 .addListenerForSingleValueEvent(object : ValueEventListener {
                                     override fun onDataChange(stationSnapshot: DataSnapshot) {
@@ -98,7 +92,6 @@ class FavoriteFragment : Fragment(), StationNavigator {
                                     }
                                 })
                         } else {
-                            // If the station is not a favorite, decrement completedTasks
                             completedTasks.incrementAndGet()
                         }
                     }

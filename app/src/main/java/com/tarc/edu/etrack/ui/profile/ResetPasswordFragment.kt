@@ -24,22 +24,21 @@ class ResetPasswordFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
     private lateinit var databaseReference: DatabaseReference
 
-    // Password validation regex pattern
     private val passwordPattern = "^(?=.*[A-Z])(?=.*[0-9]).{6,}\$".toRegex()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_reset_password, container, false)
+        val view = inflater.inflate(R.layout.fragment_change_password, container, false)
 
         currentPasswordEditText = view.findViewById(R.id.currentPasswordEditText)
         newPasswordEditText = view.findViewById(R.id.newPasswordEditText)
         confirmPasswordEditText = view.findViewById(R.id.confirmPasswordEditText)
-        resetButton = view.findViewById(R.id.resetButton)
+        resetButton = view.findViewById(R.id.changeButton)
 
-        auth = FirebaseAuth.getInstance() // Initialize Firebase Authentication
-        databaseReference = FirebaseDatabase.getInstance().reference // Initialize Firebase Realtime Database reference
+        auth = FirebaseAuth.getInstance()
+        databaseReference = FirebaseDatabase.getInstance().reference
 
         return view
     }
@@ -52,7 +51,6 @@ class ResetPasswordFragment : Fragment() {
             val newPassword = newPasswordEditText.text.toString()
             val confirmPassword = confirmPasswordEditText.text.toString()
 
-            // Check if the new password meets your validation criteria
             if (isPasswordValid(newPassword)) {
                 resetPassword(currentPassword, newPassword, confirmPassword)
             } else {
@@ -60,7 +58,6 @@ class ResetPasswordFragment : Fragment() {
             }
         }
     }
-
     private fun resetPassword(
         currentPassword: String,
         newPassword: String,
@@ -69,21 +66,16 @@ class ResetPasswordFragment : Fragment() {
         val user = auth.currentUser
 
         if (user != null) {
-            // Check if the new password matches the confirmed password
             if (newPassword == confirmPassword) {
-                // Reauthenticate the user with their current password
                 val credential = EmailAuthProvider.getCredential(user.email!!, currentPassword)
 
                 user.reauthenticate(credential)
                     .addOnCompleteListener { reauthTask ->
                         if (reauthTask.isSuccessful) {
-                            // Reauthentication successful, update the password
                             user.updatePassword(newPassword)
                                 .addOnCompleteListener { updateTask ->
                                     if (updateTask.isSuccessful) {
                                         showToast("Password updated successfully")
-
-                                        // Update the new password in Firebase Realtime Database
                                         val userId = user.uid
                                         databaseReference.child("users").child(userId).child("password").setValue(newPassword)
                                     } else {
@@ -108,7 +100,6 @@ class ResetPasswordFragment : Fragment() {
     }
 
     private fun isPasswordValid(password: String): Boolean {
-        // Validate the password against the regex pattern
         return passwordPattern.matches(password)
     }
 }

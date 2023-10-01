@@ -1,9 +1,9 @@
 package com.tarc.edu.etrack
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
+import androidx.appcompat.app.AppCompatActivity
 
 class SplashActivity : AppCompatActivity() {
 
@@ -14,6 +14,6 @@ class SplashActivity : AppCompatActivity() {
         Handler().postDelayed({
             startActivity(Intent(this, MainActivity::class.java))
             finish()
-        }, 3000) // 3000 is the delay in milliseconds
+        }, 3000)
     }
 }

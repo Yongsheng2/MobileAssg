@@ -21,7 +21,6 @@ import com.tarc.edu.etrack.RecyclerView.StationNavigator
 import com.tarc.edu.etrack.databinding.FragmentHomeBinding
 import com.tarc.edu.etrack.ui.station_details.StationData
 import com.tarc.edu.etrack.ui.station_details.StationDetailFragment
-import java.util.*
 
 class HomeFragment : Fragment(), StationNavigator {
 
@@ -33,17 +32,14 @@ class HomeFragment : Fragment(), StationNavigator {
         navigateToAnotherFragment(stationName)
     }
     fun navigateToAnotherFragment(selectedStationName: String) {
-        val fragment = StationDetailFragment() // Replace with the actual name of the fragment you want to navigate to.
-
-        // Pass the selectedStationName to the new fragment
+        val fragment = StationDetailFragment()
         val bundle = Bundle()
         bundle.putString("stationName", selectedStationName)
         fragment.arguments = bundle
 
-        // Use FragmentTransaction to navigate to the new fragment
         val transaction = requireActivity().supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.fragment_container, fragment) // Replace 'fragmentContainer' with your actual container ID
-        transaction.addToBackStack(null) // Add to back stack if needed
+        transaction.replace(R.id.fragment_container, fragment)
+        transaction.addToBackStack(null)
         transaction.commit()
     }
     override fun onCreateView(
@@ -52,20 +48,18 @@ class HomeFragment : Fragment(), StationNavigator {
     ): View? {
         val binding = FragmentHomeBinding.inflate(inflater, container, false)
         auth = Firebase.auth
-        database = FirebaseDatabase.getInstance().reference.child("Station") // Update the reference to your Firebase database
+        database = FirebaseDatabase.getInstance().reference.child("Station")
 
 
         adapter = MyAdapter({ selectedStationName ->
             navigateToAnotherFragment(selectedStationName)
         }, this)
-        // Set up the RecyclerView
 
         binding.recyclerViewStation.adapter = adapter
         binding.recyclerViewStation.layoutManager = LinearLayoutManager(requireContext())
 
         try {
             if (auth.currentUser != null) {
-                // User is authenticated, get the username and set the welcome message
                 val userId = auth.currentUser?.uid ?: ""
                 database.child(userId).child("username").addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -73,16 +67,13 @@ class HomeFragment : Fragment(), StationNavigator {
                     }
 
                     override fun onCancelled(databaseError: DatabaseError) {
-                        // Handle errors
                         Log.e("HomeFragment", "Database Error: ${databaseError.message}")
                     }
                 })
             } else {
-                // User is not authenticated, display a login message
                 binding.textViewWelcome.text = "Login to E-track to access more features!"
             }
 
-            // Retrieve and display station data
             database.addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     val stationList = ArrayList<StationData>()
@@ -100,20 +91,12 @@ class HomeFragment : Fragment(), StationNavigator {
                 }
 
                 override fun onCancelled(databaseError: DatabaseError) {
-                    // Handle errors
                     Log.e("HomeFragment", "Database Error: ${databaseError.message}")
                 }
             })
-
         } catch (e: Exception) {
-            // Handle any other exceptions that might occur
             Log.e("HomeFragment", "Exception: ${e.message}")
         }
-
         return binding.root
     }
-
-
-
-
 }

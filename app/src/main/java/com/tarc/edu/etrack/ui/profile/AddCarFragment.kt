@@ -45,7 +45,6 @@ class AddCarFragment : Fragment() {
 
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
-        // Load saved car data from Firebase when the fragment is created
         val userCarsRef = database.getReference("users").child(userId).child("usercar")
         userCarsRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -60,9 +59,7 @@ class AddCarFragment : Fragment() {
                     updateListView()
                 }
             }
-
             override fun onCancelled(databaseError: DatabaseError) {
-                // Handle errors
             }
         })
 
@@ -81,7 +78,6 @@ class AddCarFragment : Fragment() {
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                // Handle errors
             }
         })
 
@@ -91,7 +87,6 @@ class AddCarFragment : Fragment() {
                 selectedCars.add(selectedEV)
                 updateListView()
 
-                // Update Firebase with the new data
                 if (userId.isNotBlank()) {
                     userCarsRef.setValue(selectedCars)
                         .addOnCompleteListener { task ->
@@ -106,7 +101,6 @@ class AddCarFragment : Fragment() {
         }
 
         saveButton.setOnClickListener {
-            // Save the current selected cars to Firebase
             if (userId.isNotBlank()) {
                 userCarsRef.setValue(selectedCars)
                     .addOnCompleteListener { task ->
@@ -118,10 +112,8 @@ class AddCarFragment : Fragment() {
                     }
             }
         }
-
         return view
     }
-
     private fun updateListView() {
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, selectedCars)
         val listView = view?.findViewById<ListView>(R.id.listViewCars)

@@ -4,7 +4,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,22 +14,19 @@ import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
-import androidx.databinding.DataBindingUtil
-import com.tarc.edu.etrack.R
-import com.google.firebase.database.FirebaseDatabase
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
+import com.bumptech.glide.Glide
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.bumptech.glide.request.RequestOptions
-import com.firebase.ui.storage.images.FirebaseImageLoader
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import com.tarc.edu.etrack.databinding.FragmentStationdetailBinding
+import com.tarc.edu.etrack.R
+import com.tarc.edu.etrack.ui.home.HomeFragment
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -41,7 +37,6 @@ class StationDetailFragment : Fragment() {
     private val storage: FirebaseStorage = FirebaseStorage.getInstance()
     private var storageRef: StorageReference = storage.reference.child("StationImage")
 
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -49,10 +44,8 @@ class StationDetailFragment : Fragment() {
         val rootView = inflater.inflate(R.layout.fragment_stationdetail, container, false)
         val name = arguments?.getString("stationName")
 
-
-        // Firebase Realtime Database
         val database = FirebaseDatabase.getInstance()
-        val stationRef = database.getReference("Station/$name") // Adjust the reference path
+        val stationRef = database.getReference("Station/$name")
 
         stationRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -63,29 +56,22 @@ class StationDetailFragment : Fragment() {
 
                 val favouriteButton = rootView.findViewById<ImageButton>(R.id.favouritebutton)
 
-                // Check if the user is authenticated
                 val user = FirebaseAuth.getInstance().currentUser
                 if (user != null) {
-                    val userId = user.uid  // Assign the user's ID to userId
-
-                    // Create a reference to the user's favorites node
+                    val userId = user.uid
                     val userFavoritesRef: DatabaseReference = database.getReference("users/$userId/favorites")
 
-                    // Add a ValueEventListener to retrieve the favorite status for the specific station
                     userFavoritesRef.child(name.toString()).addListenerForSingleValueEvent(object : ValueEventListener {
                         override fun onDataChange(dataSnapshot: DataSnapshot) {
                             isFavorite = dataSnapshot.getValue(Boolean::class.java) ?: false
 
-                            // Update the button's image resource based on isFavorite
                             if (isFavorite) {
                                 favouriteButton.setImageResource(R.drawable.baseline_star_24)
                             } else {
                                 favouriteButton.setImageResource(R.drawable.baseline_star_border_purple500_24)
                             }
                         }
-
                         override fun onCancelled(error: DatabaseError) {
-                            // Handle errors
                         }
                     })
                 }
@@ -97,6 +83,17 @@ class StationDetailFragment : Fragment() {
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 spinnerPendingStation.adapter = adapter
 
+                val backButton = view?.findViewById<Button>(R.id.buttonBack)
+
+                backButton?.setOnClickListener{
+                    val homefragment = HomeFragment()
+
+                    val transaction: FragmentTransaction = requireFragmentManager().beginTransaction()
+                    transaction.replace(R.id.fragment_container, homefragment)
+                    transaction.addToBackStack(null)
+                    transaction.commit()
+                }
+
                 val buttonPending = rootView.findViewById<Button>(R.id.buttonPending)
                 buttonPending.setOnClickListener {
                     val user = FirebaseAuth.getInstance().currentUser
@@ -104,51 +101,40 @@ class StationDetailFragment : Fragment() {
 
                     if (userId != null) {
                         val selectedPlace = spinnerPendingStation.selectedItem.toString()
-
-                        // Get a reference to the current "PendingPlace" and "Status" in Firebase
                         val pendingPlaceRef = stationRef.child("PendingPlace").child(selectedPlace)
                         val statusRef = stationRef.child("Status")
 
-                        // Check if the station is closed
                         statusRef.addListenerForSingleValueEvent(object : ValueEventListener {
                             override fun onDataChange(dataSnapshot: DataSnapshot) {
                                 val status = dataSnapshot.value as String?
 
                                 if (status == "Closed") {
-                                    // Station is closed, show a message
                                     Toast.makeText(requireContext(), "Sorry, station is closed", Toast.LENGTH_SHORT).show()
                                 } else {
-                                    // Station is open, check the reservation
                                     pendingPlaceRef.addListenerForSingleValueEvent(object : ValueEventListener {
                                         override fun onDataChange(dataSnapshot: DataSnapshot) {
                                             val currentValue = dataSnapshot.value as String?
 
                                             if (currentValue == null || currentValue == "none") {
-                                                // If it's "none" or doesn't exist, place the user's UID
                                                 pendingPlaceRef.setValue(userId)
                                                 Toast.makeText(requireContext(), "Reserved by you", Toast.LENGTH_SHORT).show()
                                             } else if (currentValue == userId) {
-                                                // If it's the user's UID, show a message
                                                 Toast.makeText(requireContext(), "Already reserved by you", Toast.LENGTH_SHORT).show()
                                             } else {
-                                                // If it's someone else's UID, show a message
                                                 Toast.makeText(requireContext(), "Already reserved by other people", Toast.LENGTH_SHORT).show()
                                             }
                                         }
 
                                         override fun onCancelled(databaseError: DatabaseError) {
-                                            // Handle potential errors here
                                         }
                                     })
                                 }
                             }
 
                             override fun onCancelled(databaseError: DatabaseError) {
-                                // Handle potential errors here
                             }
                         })
                     } else {
-                        // User is not authenticated
                         Toast.makeText(requireContext(), "User not authenticated", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -156,11 +142,7 @@ class StationDetailFragment : Fragment() {
 
                 stationRef.addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
-
-                        // Retrieve the "Chargertype" value from the Firebase data
                         val chargertype = dataSnapshot.child("Chargertype").getValue(String::class.java)
-
-                        // Set the "Chargertype" value to the textViewChargertype
                         val textViewChargertype = rootView.findViewById<TextView>(R.id.textViewChargertype)
                         textViewChargertype.text = chargertype
 
@@ -170,32 +152,25 @@ class StationDetailFragment : Fragment() {
                     override fun onCancelled(error: DatabaseError) {
                         Log.e("FirebaseError", "Firebase data retrieval error: ${error.message}")                    }
                 })
-                // Set up an OnClickListener for the favorite button
                 favouriteButton.setOnClickListener {
                     if (user != null) {
-                        val userId = user.uid  // Assign the user's ID to userId
-                        // Create a reference to the user's favorites node
+                        val userId = user.uid
                         val userFavoritesRef: DatabaseReference = database.getReference("users/$userId/favorites")
 
                         if (isFavorite) {
-                            // If already a favorite, set the value to false
                             userFavoritesRef.child(name.toString()).setValue(false)
                         } else {
-                            // If not a favorite, set the value to true
                             userFavoritesRef.child(name.toString()).setValue(true)
                         }
 
-                        // Toggle the isFavorite state
                         isFavorite = !isFavorite
 
-                        // Update the button's image resource based on isFavorite
                         if (isFavorite) {
                             favouriteButton.setImageResource(R.drawable.baseline_star_24)
                         } else {
                             favouriteButton.setImageResource(R.drawable.baseline_star_border_purple500_24)
                         }
                     } else {
-                        // User is not authenticated, handle this case (e.g., show a login prompt).
                     }
                 }
 
@@ -227,7 +202,6 @@ class StationDetailFragment : Fragment() {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                // Handle errors
             }
         })
 
@@ -239,7 +213,6 @@ class StationDetailFragment : Fragment() {
         val imageViewDetail2 = rootView.findViewById<ImageView>(R.id.imageViewDetail2)
         val imageViewDetail3 = rootView.findViewById<ImageView>(R.id.imageViewDetail3)
 
-        // Load the image from the Firebase Storage reference
         imageReference1.downloadUrl.addOnSuccessListener { uri ->
             val imageStorageUrl = uri.toString()
 
@@ -267,15 +240,11 @@ class StationDetailFragment : Fragment() {
                 .error(R.drawable.error_image)
                 .into(imageViewDetail3)
         }
-
-
-
         return rootView
     }
 
     private fun openWebBrowserWithAddress(address: String?) {
         if (address != null) {
-            // Construct a URL to open in the browser
             val url = "https://www.google.com/maps?q=$address"
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
 
@@ -284,7 +253,6 @@ class StationDetailFragment : Fragment() {
             if (browserApps.isNotEmpty()) {
                 startActivity(intent)
             } else {
-                // Handle the case where a web browser is not available
                 Toast.makeText(requireContext(), "No web browser found to open the address", Toast.LENGTH_SHORT).show()
             }
         }

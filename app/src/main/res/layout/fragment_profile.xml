@@ -46,10 +46,9 @@
         android:textColor="#000000"
         app:icon="@drawable/baseline_logout_24"
         app:iconTint="#808080"
-        app:layout_constraintEnd_toEndOf="@+id/buttontpdpg"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/buttontpdpg"
-        app:layout_constraintTop_toBottomOf="@+id/buttontpdpg" />
+        app:layout_constraintEnd_toEndOf="@+id/buttonAddCar"
+        app:layout_constraintStart_toStartOf="@+id/buttonAddCar"
+        app:layout_constraintTop_toBottomOf="@+id/buttonAddCar" />
 
     <Button
         android:id="@+id/buttonAddCar"
@@ -65,17 +64,4 @@
         app:layout_constraintStart_toStartOf="@+id/buttonUserInfo"
         app:layout_constraintTop_toBottomOf="@+id/buttonUserInfo" />
 
-    <Button
-        android:id="@+id/buttontpdpg"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:background="#00FFFFFF"
-        android:text="Pending Page"
-        android:textColor="#000000"
-        app:icon="@drawable/baseline_pending_24"
-        app:iconTint="#808080"
-        app:layout_constraintEnd_toEndOf="@+id/buttonAddCar"
-        app:layout_constraintStart_toStartOf="@+id/buttonAddCar"
-        app:layout_constraintTop_toBottomOf="@+id/buttonAddCar" />
 </androidx.constraintlayout.widget.ConstraintLayout>

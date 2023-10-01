@@ -1,25 +1,25 @@
 package com.tarc.edu.etrack.ui.find_station
 
 import android.os.Bundle
-import android.service.autofill.UserData
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.*
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.tarc.edu.etrack.R
 import com.tarc.edu.etrack.RecyclerView.MyAdapter
 import com.tarc.edu.etrack.RecyclerView.StationNavigator
 import com.tarc.edu.etrack.databinding.FragmentFindStationBinding
 import com.tarc.edu.etrack.ui.station_details.StationData
 import com.tarc.edu.etrack.ui.station_details.StationDetailFragment
-import java.util.ArrayList
-
 
 class FindStationFragment : Fragment(), StationNavigator {
 
@@ -37,17 +37,15 @@ class FindStationFragment : Fragment(), StationNavigator {
         navigateToAnotherFragment(stationName)
     }
     fun navigateToAnotherFragment(selectedStationName: String) {
-        val fragment = StationDetailFragment() // Replace with the actual name of the fragment you want to navigate to.
+        val fragment = StationDetailFragment()
 
-        // Pass the selectedStationName to the new fragment
         val bundle = Bundle()
         bundle.putString("stationName", selectedStationName)
         fragment.arguments = bundle
 
-        // Use FragmentTransaction to navigate to the new fragment
         val transaction = requireActivity().supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.fragment_container, fragment) // Replace 'fragmentContainer' with your actual container ID
-        transaction.addToBackStack(null) // Add to back stack if needed
+        transaction.replace(R.id.fragment_container, fragment)
+        transaction.addToBackStack(null)
         transaction.commit()
     }
 
@@ -97,17 +95,11 @@ class FindStationFragment : Fragment(), StationNavigator {
                 }
 
                 override fun onCancelled(databaseError: DatabaseError) {
-                    // Handle errors
                     Log.e("FindStationFragment", "Database Error: ${databaseError.message}")
                 }
             })
         }
-
-
-
-        // Fetch and display all stations initially
         updateStations()
-
         return binding.root
     }
 
@@ -139,7 +131,6 @@ class FindStationFragment : Fragment(), StationNavigator {
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                // Handle errors
                 Log.e("HomeFragment", "Database Error: ${databaseError.message}")
             }
         })
@@ -164,8 +155,6 @@ class FindStationFragment : Fragment(), StationNavigator {
                     val name = snapshot.key ?: ""
                     val openTime = snapshot.child("OpenTime").getValue(String::class.java) ?: ""
                     val closeTime = snapshot.child("CloseTime").getValue(String::class.java) ?: ""
-
-                    // Check if the stationName contains the search query (case-insensitive)
                     if (stationName.contains(stationNameQuery, ignoreCase = true)) {
                         val stationData = StationData(stationName, name, openTime, closeTime)
                         stations.add(stationData)
@@ -180,9 +169,6 @@ class FindStationFragment : Fragment(), StationNavigator {
             }
         })
     }
-
-
-
     private fun filterStationsByCarChargerType() {
         val currentUser = auth.currentUser
         val userId = currentUser?.uid
@@ -195,17 +181,13 @@ class FindStationFragment : Fragment(), StationNavigator {
                     if (dataSnapshot.exists()) {
                         val user = dataSnapshot.value as Map<String, Any>
                         val userCars = user["usercar"] as List<String>
-
-                        // Retrieve charger types for user's cars
                         val userCarChargerTypes = getUserCarChargerTypes(userCars)
 
-                        // Filter stations by charger types
                         filterStationsByChargerTypes(userCarChargerTypes)
                     }
                 }
 
                 override fun onCancelled(databaseError: DatabaseError) {
-                    // Handle errors
                     Log.e("FindStationFragment", "Database Error: ${databaseError.message}")
                 }
             })
@@ -214,8 +196,6 @@ class FindStationFragment : Fragment(), StationNavigator {
 
     private fun getUserCarChargerTypes(userCars: List<String>): List<String> {
         val userCarChargerTypes = mutableListOf<String>()
-
-        // Define your car charger types mapping here
         val carChargerTypes = mapOf(
             "Audi e-tron" to "CCS Combo 2",
             "Audi e-tron GT" to "CCS Combo 2",
@@ -263,8 +243,6 @@ class FindStationFragment : Fragment(), StationNavigator {
 
                 for (stationSnapshot in dataSnapshot.children) {
                     val stationChargerType = stationSnapshot.child("Chargertype").getValue(String::class.java) ?: ""
-
-                    // Check if the station's charger type matches any of the user's car charger types
                     if (userCarChargerTypes.contains(stationChargerType)) {
                         val stationName = stationSnapshot.child("Name").getValue(String::class.java) ?: ""
                         val name = stationSnapshot.key ?: ""
@@ -277,15 +255,10 @@ class FindStationFragment : Fragment(), StationNavigator {
 
                 adapter.setData(filteredStations)
             }
-
             override fun onCancelled(databaseError: DatabaseError) {
-                // Handle errors
                 Log.e("FindStationFragment", "Database Error: ${databaseError.message}")
             }
         })
     }
-
-
-
 }
 
