@@ -20,7 +20,7 @@
         android:layout_width="wrap_content"
         android:layout_height="50dp"
         android:layout_marginStart="156dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="25dp"
         android:layout_marginEnd="155dp"
         android:fontFamily="@font/bebas_neue"
         android:text="@string/favorite"
