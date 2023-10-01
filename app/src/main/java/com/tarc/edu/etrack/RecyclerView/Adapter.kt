@@ -4,12 +4,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.tarc.edu.etrack.R
-import com.tarc.edu.etrack.databinding.ItemLayoutBinding
 import com.bumptech.glide.Glide
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import com.tarc.edu.etrack.ui.home.HomeFragment
+import com.tarc.edu.etrack.R
+import com.tarc.edu.etrack.databinding.ItemLayoutBinding
 import com.tarc.edu.etrack.ui.station_details.StationData
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -31,15 +30,13 @@ class MyAdapter(
     inner class ViewHolder(private val binding: ItemLayoutBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(station: StationData) {
             binding.textViewStationTitle.text = station.stationName
-            // Create a reference to the image in Firebase Storage
             val imageRef = storageRef.child("${station.name}.jpg")
 
             binding.buttonStationDetails.setOnClickListener {
-                val name = station.name // Get the name from the station
+                val name = station.name
                 navigator.navigateToStationDetail(name)
             }
 
-            // Load the image from the Firebase Storage reference
             imageRef.downloadUrl.addOnSuccessListener { uri ->
                 val imageStorageUrl = uri.toString()
 
@@ -49,7 +46,6 @@ class MyAdapter(
                     .error(R.drawable.error_image)
                     .into(binding.imageViewStation)
 
-                // Calculate and set the status based on OpenTime and CloseTime
                 val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
                 val openTime = station.openTime
                 val closeTime = station.closeTime
@@ -61,7 +57,6 @@ class MyAdapter(
                 }
 
             }.addOnFailureListener { exception ->
-                // Handle any errors that occur while loading the image
                 Log.e("MyAdapter", "Image download failed: ${exception.message}")
             }
         }
