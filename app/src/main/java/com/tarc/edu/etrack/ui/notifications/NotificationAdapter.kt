@@ -8,27 +8,26 @@ import androidx.recyclerview.widget.RecyclerView
 import com.tarc.edu.etrack.R
 
 class NotificationAdapter(private val notificationsList: List<NotificationData>) :
-    RecyclerView.Adapter<NotificationAdapter.ViewHolder>() {
+    RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.notification_item, parent, false)
-        return ViewHolder(view)
+    inner class NotificationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val titleTextView: TextView = itemView.findViewById(R.id.notificationTitle)
+        val messageTextView: TextView = itemView.findViewById(R.id.notificationMessage)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val notificationItem = notificationsList[position]
-        holder.bind(notificationItem)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotificationViewHolder {
+        val itemView = LayoutInflater.from(parent.context)
+            .inflate(R.layout.notification_item, parent, false)
+        return NotificationViewHolder(itemView)
+    }
+
+    override fun onBindViewHolder(holder: NotificationViewHolder, position: Int) {
+        val currentItem = notificationsList[position]
+        holder.titleTextView.text = currentItem.title
+        holder.messageTextView.text = currentItem.message
     }
 
     override fun getItemCount(): Int {
         return notificationsList.size
-    }
-
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        fun bind(notificationItem: NotificationData) {
-            val messageTextView = itemView.findViewById<TextView>(R.id.textViewNotification)
-            messageTextView.text = notificationItem.message
-        }
     }
 }

@@ -1,6 +1,6 @@
 package com.tarc.edu.etrack.ui.notifications
 
 data class NotificationData(
-    val stationName: String,
+    val title: String,
     val message: String,
 )
