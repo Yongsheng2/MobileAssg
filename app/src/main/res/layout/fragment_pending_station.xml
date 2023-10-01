@@ -4,34 +4,32 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.notifications.NotificationsFragment">
+    tools:context=".pending_station">
 
     <TextView
-        android:id="@+id/textViewNotification"
+        android:id="@+id/titlepd"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_marginStart="50dp"
-        android:layout_marginTop="45dp"
-        android:layout_marginEnd="50dp"
+        android:layout_marginTop="25dp"
         android:fontFamily="@font/bebas_neue"
-        android:text="@string/notifications"
+        android:text="Pending Station"
         android:textAlignment="center"
         android:textColor="#673AB7"
         android:textSize="34sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewNotification"
-        android:layout_width="409dp"
-        android:layout_height="634dp"
-        android:layout_marginStart="25dp"
+        android:id="@+id/recyclerViewPending"
+        android:layout_width="0dp"
+        android:layout_height="654dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="25dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewNotification" />
+        app:layout_constraintTop_toBottomOf="@+id/titlepd" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

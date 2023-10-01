@@ -24,12 +24,6 @@
         tools:layout="@layout/fragment_favorite"/>
 
     <fragment
-        android:id="@+id/menu_notifications"
-        android:name="com.tarc.edu.etrack.ui.notifications.NotificationsFragment"
-        android:label="@string/notifications"
-        tools:layout="@layout/fragment_notifications"/>
-
-    <fragment
         android:id="@+id/menu_profile"
         android:name="com.tarc.edu.etrack.ui.profile.ProfileFragment"
         android:label="@string/profile"
