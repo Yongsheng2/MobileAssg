@@ -20,6 +20,7 @@ import com.tarc.edu.etrack.ui.station_details.StationData
 import com.tarc.edu.etrack.ui.station_details.StationDetailFragment
 import java.util.ArrayList
 
+
 class FindStationFragment : Fragment(), StationNavigator {
 
     private lateinit var binding: FragmentFindStationBinding
@@ -71,6 +72,38 @@ class FindStationFragment : Fragment(), StationNavigator {
             currentFilterType = FilterType.BY_CAR
             updateStations()
         }
+
+        val usercars = binding.textViewUserCar.text
+        val currentUser = auth.currentUser
+        val userId = currentUser?.uid
+
+        if (userId != null) {
+            val userRef = database.child("users").child(userId)
+
+            userRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        val user = dataSnapshot.value as Map<String, Any>
+
+                        if (user.containsKey("usercar")) {
+                            val userCars = user["usercar"] as List<String>
+
+                            if (userCars.isNotEmpty()) {
+                                val carString = userCars.joinToString(", ")
+                                binding.textViewUserCar.text = carString
+                            }
+                        }
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Handle errors
+                    Log.e("FindStationFragment", "Database Error: ${databaseError.message}")
+                }
+            })
+        }
+
+
 
         // Fetch and display all stations initially
         updateStations()
@@ -151,8 +184,107 @@ class FindStationFragment : Fragment(), StationNavigator {
 
 
     private fun filterStationsByCarChargerType() {
+        val currentUser = auth.currentUser
+        val userId = currentUser?.uid
 
+        if (userId != null) {
+            val userRef = database.child("users").child(userId)
+
+            userRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        val user = dataSnapshot.value as Map<String, Any>
+                        val userCars = user["usercar"] as List<String>
+
+                        // Retrieve charger types for user's cars
+                        val userCarChargerTypes = getUserCarChargerTypes(userCars)
+
+                        // Filter stations by charger types
+                        filterStationsByChargerTypes(userCarChargerTypes)
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Handle errors
+                    Log.e("FindStationFragment", "Database Error: ${databaseError.message}")
+                }
+            })
+        }
     }
+
+    private fun getUserCarChargerTypes(userCars: List<String>): List<String> {
+        val userCarChargerTypes = mutableListOf<String>()
+
+        // Define your car charger types mapping here
+        val carChargerTypes = mapOf(
+            "Audi e-tron" to "CCS Combo 2",
+            "Audi e-tron GT" to "CCS Combo 2",
+            "BMW i4" to "CCS Combo 2",
+            "BMW iX" to "CCS Combo 2",
+            "BMW iX3" to "CCS Combo 2",
+            "Chevrolet Bolt EUV" to "CCS Combo 2",
+            "Chevrolet Bolt EV" to "CCS Combo 2",
+            "Ford Mustang Mach-E" to "CCS Combo 2",
+            "Hyundai Ioniq 5" to "CCS Combo 2",
+            "Hyundai Kona Electric" to "CCS Combo 2",
+            "Kia EV6" to "CCS Combo 2",
+            "Kia Niro EV" to "CCS Combo 2",
+            "Mercedes-Benz EQE" to "CCS Combo 2",
+            "Mercedes-Benz EQE SUV" to "CCS Combo 2",
+            "Mercedes-Benz EQS" to "CCS Combo 2",
+            "Mercedes-Benz EQS SUV" to "CCS Combo 2",
+            "Nissan Leaf" to "CCS Combo 2",
+            "Tesla Model 3" to "TeslaSupercharger",
+            "Tesla Model S" to "TeslaSupercharger",
+            "Tesla Model X" to "TeslaSupercharger",
+            "Tesla Model Y" to "TeslaSupercharger",
+            "Volkswagen ID4" to "CHAdeMo",
+            "Volvo C40 Recharge" to "CHAdeMo",
+            "Volvo XC40 Recharge" to  "CHAdeMo"
+
+        )
+
+        for (car in userCars) {
+            val chargerType = carChargerTypes[car]
+            chargerType?.let {
+                userCarChargerTypes.add(it)
+            }
+        }
+
+        return userCarChargerTypes
+    }
+
+    private fun filterStationsByChargerTypes(userCarChargerTypes: List<String>) {
+        val stationRef = database.child("Station")
+
+        stationRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val filteredStations = mutableListOf<StationData>()
+
+                for (stationSnapshot in dataSnapshot.children) {
+                    val stationChargerType = stationSnapshot.child("Chargertype").getValue(String::class.java) ?: ""
+
+                    // Check if the station's charger type matches any of the user's car charger types
+                    if (userCarChargerTypes.contains(stationChargerType)) {
+                        val stationName = stationSnapshot.child("Name").getValue(String::class.java) ?: ""
+                        val name = stationSnapshot.key ?: ""
+                        val openTime = stationSnapshot.child("OpenTime").getValue(String::class.java) ?: ""
+                        val closeTime = stationSnapshot.child("CloseTime").getValue(String::class.java) ?: ""
+                        val stationData = StationData(stationName, name, openTime, closeTime)
+                        filteredStations.add(stationData)
+                    }
+                }
+
+                adapter.setData(filteredStations)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle errors
+                Log.e("FindStationFragment", "Database Error: ${databaseError.message}")
+            }
+        })
+    }
+
 
 
 }

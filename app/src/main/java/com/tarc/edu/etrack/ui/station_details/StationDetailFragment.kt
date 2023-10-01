@@ -90,6 +90,70 @@ class StationDetailFragment : Fragment() {
                     })
                 }
 
+                val spinnerPendingStation = rootView.findViewById<Spinner>(R.id.spinnerPendingStation)
+                val places = arrayOf("Place1", "Place2", "Place3", "Place4")
+
+                val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, places)
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                spinnerPendingStation.adapter = adapter
+
+                val buttonPending = rootView.findViewById<Button>(R.id.buttonPending)
+                buttonPending.setOnClickListener {
+                    val user = FirebaseAuth.getInstance().currentUser
+                    val userId = user?.uid
+
+                    if (userId != null) {
+                        val selectedPlace = spinnerPendingStation.selectedItem.toString()
+
+                        // Get a reference to the current "PendingPlace" and "Status" in Firebase
+                        val pendingPlaceRef = stationRef.child("PendingPlace").child(selectedPlace)
+                        val statusRef = stationRef.child("Status")
+
+                        // Check if the station is closed
+                        statusRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                val status = dataSnapshot.value as String?
+
+                                if (status == "Closed") {
+                                    // Station is closed, show a message
+                                    Toast.makeText(requireContext(), "Sorry, station is closed", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    // Station is open, check the reservation
+                                    pendingPlaceRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                                        override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                            val currentValue = dataSnapshot.value as String?
+
+                                            if (currentValue == null || currentValue == "none") {
+                                                // If it's "none" or doesn't exist, place the user's UID
+                                                pendingPlaceRef.setValue(userId)
+                                                Toast.makeText(requireContext(), "Reserved by you", Toast.LENGTH_SHORT).show()
+                                            } else if (currentValue == userId) {
+                                                // If it's the user's UID, show a message
+                                                Toast.makeText(requireContext(), "Already reserved by you", Toast.LENGTH_SHORT).show()
+                                            } else {
+                                                // If it's someone else's UID, show a message
+                                                Toast.makeText(requireContext(), "Already reserved by other people", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+
+                                        override fun onCancelled(databaseError: DatabaseError) {
+                                            // Handle potential errors here
+                                        }
+                                    })
+                                }
+                            }
+
+                            override fun onCancelled(databaseError: DatabaseError) {
+                                // Handle potential errors here
+                            }
+                        })
+                    } else {
+                        // User is not authenticated
+                        Toast.makeText(requireContext(), "User not authenticated", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+
                 stationRef.addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
 
@@ -204,35 +268,7 @@ class StationDetailFragment : Fragment() {
                 .into(imageViewDetail3)
         }
 
-        // ... Existing code ...
 
-        val spinnerPendingStation = rootView.findViewById<Spinner>(R.id.spinnerPendingStation)
-        val places = arrayOf("Place1", "Place2", "Place3", "Place4")
-
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, places)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerPendingStation.adapter = adapter
-
-        val buttonPending = rootView.findViewById<Button>(R.id.buttonPending)
-        buttonPending.setOnClickListener {
-            val selectedPlace = spinnerPendingStation.selectedItem as String
-
-            // Update the place status in Firebase
-            val user = FirebaseAuth.getInstance().currentUser
-            if (user != null) {
-                val userId = user.uid
-                val stationRef = database.getReference("Station/$name/PendingPlace/$selectedPlace")
-                stationRef.setValue(false).addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        // Place marked as pending successfully
-                        Toast.makeText(requireContext(), "Place $selectedPlace marked as pending.", Toast.LENGTH_SHORT).show()
-                    } else {
-                        // Handle error
-                        Toast.makeText(requireContext(), "Failed to mark place as pending.", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        }
 
         return rootView
     }
